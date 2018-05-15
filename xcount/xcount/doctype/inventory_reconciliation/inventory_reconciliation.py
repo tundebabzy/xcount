@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 
 from erpnext.accounts.general_ledger import process_gl_map
 from erpnext.stock import get_warehouse_account_map
-from erpnext.stock.doctype.inventory_reconciliation.utils import make_sl_entries
+from xcount.xcount.doctype.inventory_reconciliation.utils import make_sl_entries
 from erpnext.stock.doctype.stock_reconciliation.stock_reconciliation import StockReconciliation
 from frappe import throw, _, _dict, db, msgprint, get_doc, get_list
 from frappe.utils import flt
