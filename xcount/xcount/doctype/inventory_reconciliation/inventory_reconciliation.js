@@ -43,7 +43,7 @@ frappe.ui.form.on('Inventory Reconciliation', {
 
 	get_stock_count_sheets: function(frm) {
 		erpnext.utils.map_current_doc({
-			method: 'erpnext.stock.doctype.stock_sheet.stock_sheet.make_stock_reconciliation',
+			method: 'xcount.xcount.doctype.stock_sheet.stock_sheet.make_stock_reconciliation',
 			source_doctype: "Stock Sheet",
 			target: me.frm,
 			date_field: 'stock_count_date',
