@@ -15,4 +15,9 @@ recursive-include xcount *.png
 recursive-include xcount *.py
 recursive-include xcount *.svg
 recursive-include xcount *.txt
+recursive-include xcount/xcount *
+recursive-include xcount/xcount/config *
+recursive-include xcount/xcount/public *
+recursive-include xcount/xcount/templates *
+recursive-include xcount/xcount/xcount *
 recursive-exclude xcount *.pyc
