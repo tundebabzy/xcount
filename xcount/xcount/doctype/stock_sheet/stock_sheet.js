@@ -52,6 +52,38 @@ frappe.ui.form.on('Stock Sheet', {
 		}
 	},
 
+	barcode:function(frm) {
+		if (frm.doc.barcode) {
+			frappe.call({
+				method: 'erpnext.stock.get_item_details.get_item_code',
+				args: {'barcode': frm.doc.barcode},
+				callback: function(r) {
+					if (!r.exe){
+						const item_code = r.message;
+						const rows_with_item = frm.doc.items.filter(row => row.item_code === item_code);
+						const empty_rows = frm.doc.items.filter(row => !row.item_code);
+						let chosen_row;
+
+						// empty table or filled up table without item
+						if ((!empty_rows.length && !rows_with_item.length) || !frm.doc.items.length) {
+							chosen_row = frm.add_child('items');
+						}
+						// if item is already in the table, use the first one, else use the first empty row we find
+						else {
+							chosen_row = rows_with_item.length ? rows_with_item[0] : empty_rows[0];
+						}
+						frappe.model.set_value(chosen_row.doctype, chosen_row.name, 'barcode', frm.doc.barcode);
+						frappe.model.set_value(chosen_row.doctype, chosen_row.name, 'qty', flt(chosen_row.qty) + 1);
+					}
+
+					// let's clear the barcode for reuse
+					frm.set_value('barcode', '');
+					frm.refresh_field('items');
+				}
+			});
+		}
+	},
+
 	set_item_code: function(doc, cdt, cdn) {
 		var d = frappe.model.get_doc(cdt, cdn);
 		if (d.barcode) {
