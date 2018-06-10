@@ -73,15 +73,42 @@ frappe.ui.form.on('Stock Sheet', {
 							chosen_row = rows_with_item.length ? rows_with_item[0] : empty_rows[0];
 						}
 						frappe.model.set_value(chosen_row.doctype, chosen_row.name, 'barcode', frm.doc.barcode);
-						frappe.model.set_value(chosen_row.doctype, chosen_row.name, 'qty', flt(chosen_row.qty) + 1);
+						frappe.model.set_value(
+							chosen_row.doctype,
+							chosen_row.name,
+							'qty',
+							flt(chosen_row.qty) ? flt(chosen_row.qty) : flt(chosen_row.qty) + 1
+						);
 					}
 
-					// let's clear the barcode for reuse
-					frm.set_value('barcode', '');
 					frm.refresh_field('items');
 				}
 			});
 		}
+	},
+
+	barcode_qty: function(frm) {
+		if (frm.doc.barcode && frm.doc.barcode_qty) {
+			const rows_with_item = frm.doc.items.filter(row => row.barcode === frm.doc.barcode);
+			const empty_rows = frm.doc.items.filter(row => !row.item_code);
+			let chosen_row;
+
+			if ((!empty_rows.length && !rows_with_item.length) || !frm.doc.items.length) {
+				chosen_row = frm.add_child('items');
+			} else {
+				chosen_row = rows_with_item ? rows_with_item[0] : empty_rows[0];
+			}
+			frappe.model.set_value(chosen_row.doctype, chosen_row.name, 'qty', flt(chosen_row.qty) + flt(frm.doc.barcode_qty));
+		}
+
+		// let's clear the barcode for reuse
+		frm.set_value('barcode', '');
+
+		// reset the barcode_qty
+		frm.set_value('barcode_qty', '')
+
+		// move focus back to the barcode field
+		$('input[data-fieldname="barcode"]').focus();
 	},
 
 	set_item_code: function(doc, cdt, cdn) {
