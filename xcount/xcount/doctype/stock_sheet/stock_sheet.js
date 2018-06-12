@@ -20,7 +20,8 @@ frappe.ui.form.on('Stock Sheet', {
 					args: {
 						warehouse: data.warehouse,
 						posting_date: frm.doc.stock_count_date,
-						posting_time: frm.doc.stock_count_time
+						posting_time: frm.doc.stock_count_time,
+						company: window.frappe.boot.user.defaults.company
 					},
 					callback: function(r) {
 						if (r.message) {
