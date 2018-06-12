@@ -73,15 +73,11 @@ frappe.ui.form.on('Stock Sheet', {
 							chosen_row = rows_with_item.length ? rows_with_item[0] : empty_rows[0];
 						}
 						frappe.model.set_value(chosen_row.doctype, chosen_row.name, 'barcode', frm.doc.barcode);
-						frappe.model.set_value(
-							chosen_row.doctype,
-							chosen_row.name,
-							'qty',
-							flt(chosen_row.qty) ? flt(chosen_row.qty) : flt(chosen_row.qty) + 1
-						);
 					}
 
 					frm.refresh_field('items');
+					// move focus back to the barcode field
+					$('input[data-fieldname="barcode_qty"]').focus();
 				}
 			});
 		}
@@ -159,12 +155,6 @@ frappe.ui.form.on('Stock Sheet', {
 		frappe.model.set_value(cdt, cdn, 'warehouse', frm.doc.default_warehouse);
 	},
 
-	set_default_qty: function(frm, cdt, cdn) {
-		const doc = frappe.model.get_doc(cdt, cdn);
-		if (!flt(doc.qty)) {
-			frappe.model.set_value(cdt, cdn, 'qty', 1);
-		}
-	}
 });
 
 frappe.ui.form.on('Stock Sheet Item', {
@@ -178,7 +168,6 @@ frappe.ui.form.on('Stock Sheet Item', {
 
 	item_code: function(frm, cdt, cdn) {
 		frm.events.set_row_default_warehouse(frm, cdt, cdn);
-		frm.events.set_default_qty(frm, cdt, cdn);
 		frm.events.set_expected_qty(frm, cdt, cdn);
 	},
 });
