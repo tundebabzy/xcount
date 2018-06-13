@@ -73,6 +73,7 @@ frappe.ui.form.on('Stock Sheet', {
 						else {
 							chosen_row = rows_with_item.length ? rows_with_item[0] : empty_rows[0];
 						}
+						frm.set_value('barcode_qty', 1);
 						frappe.model.set_value(chosen_row.doctype, chosen_row.name, 'barcode', frm.doc.barcode);
 						frappe.model.set_value(
 							chosen_row.doctype,
