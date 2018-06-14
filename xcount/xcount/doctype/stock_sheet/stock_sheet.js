@@ -1,6 +1,8 @@
 // Copyright (c) 2018, XLevel Retail Systems Nigeria Ltd and contributors
 // For license information, please see license.txt
 
+let go_ahead = 0;
+
 frappe.ui.form.on('Stock Sheet', {
 	refresh: function(frm) {
 		if(frm.doc.docstatus < 1) {
@@ -10,6 +12,20 @@ frappe.ui.form.on('Stock Sheet', {
 		}
 
 		frm.set_value('counted_by', frappe.session.user);
+	},
+
+	listen_to: function (frm, fieldname) {
+		const fn = (e) => {
+			if (frappe.ui.keys.key_map[e.which] === 'enter') {
+				if (e.target.dataset.fieldname === fieldname) {
+					e.preventDefault();
+					frm.set_value(fieldname, '');	// otherwise we might not get change event to trigger
+					go_ahead = 1;
+					frm.set_value(fieldname, flt(e.target.value));
+				}
+			}
+		}
+		frappe.ui.keys.on('enter', fn);
 	},
 
 	get_items: function(frm) {
@@ -51,6 +67,8 @@ frappe.ui.form.on('Stock Sheet', {
 				return erpnext.queries.warehouse(frm.doc);
 			});
 		}
+
+		frm.events.listen_to(frm, 'barcode_qty');
 	},
 
 	barcode:function(frm) {
@@ -73,24 +91,21 @@ frappe.ui.form.on('Stock Sheet', {
 						else {
 							chosen_row = rows_with_item.length ? rows_with_item[0] : empty_rows[0];
 						}
+						go_ahead = 0;
 						frm.set_value('barcode_qty', 1);
 						frappe.model.set_value(chosen_row.doctype, chosen_row.name, 'barcode', frm.doc.barcode);
-						frappe.model.set_value(
-							chosen_row.doctype,
-							chosen_row.name,
-							'qty',
-							flt(chosen_row.qty) ? flt(chosen_row.qty) : flt(chosen_row.qty) + 1
-						);
 					}
 
 					frm.refresh_field('items');
 				}
 			});
+		} else {
+			frm.set_value('barcode_qty', '');
 		}
 	},
 
 	barcode_qty: function(frm) {
-		if (frm.doc.barcode && frm.doc.barcode_qty) {
+		if (frm.doc.barcode && frm.doc.barcode_qty && go_ahead) {
 			const rows_with_item = frm.doc.items.filter(row => row.barcode === frm.doc.barcode);
 			const empty_rows = frm.doc.items.filter(row => !row.item_code);
 			let chosen_row;
@@ -100,17 +115,20 @@ frappe.ui.form.on('Stock Sheet', {
 			} else {
 				chosen_row = rows_with_item ? rows_with_item[0] : empty_rows[0];
 			}
+
 			frappe.model.set_value(chosen_row.doctype, chosen_row.name, 'qty', flt(chosen_row.qty) + flt(frm.doc.barcode_qty));
+
+			go_ahead = 0;
+
+			// let's clear the barcode for reuse
+			frm.set_value('barcode', '');
+
+			// reset the barcode_qty
+			frm.set_value('barcode_qty', '');
+
+			// move focus back to the barcode field
+			$('input[data-fieldname="barcode"]').select();
 		}
-
-		// let's clear the barcode for reuse
-		frm.set_value('barcode', '');
-
-		// reset the barcode_qty
-		frm.set_value('barcode_qty', '')
-
-		// move focus back to the barcode field
-		$('input[data-fieldname="barcode"]').focus();
 	},
 
 	set_item_code: function(doc, cdt, cdn) {
@@ -180,7 +198,7 @@ frappe.ui.form.on('Stock Sheet Item', {
 
 	item_code: function(frm, cdt, cdn) {
 		frm.events.set_row_default_warehouse(frm, cdt, cdn);
-		frm.events.set_default_qty(frm, cdt, cdn);
+		// frm.events.set_default_qty(frm, cdt, cdn);
 		frm.events.set_expected_qty(frm, cdt, cdn);
 	},
 });
