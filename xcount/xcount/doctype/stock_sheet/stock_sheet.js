@@ -97,6 +97,7 @@ frappe.ui.form.on('Stock Sheet', {
 					}
 
 					frm.refresh_field('items');
+					$('input[data-fieldname="barcode_qty"]').select();
 				}
 			});
 		} else {
