@@ -41,6 +41,12 @@ frappe.ui.form.on('Inventory Reconciliation', {
 		}
 	},
 
+	treat_as_zero: function(frm) {
+		if (!frm.doc.treat_as_zero) {
+			frm.set_value('applicable_warehouse', '');
+		}
+	},
+
 	get_stock_count_sheets: function(frm) {
 		erpnext.utils.map_current_doc({
 			method: 'xcount.xcount.doctype.stock_sheet.stock_sheet.make_stock_reconciliation',

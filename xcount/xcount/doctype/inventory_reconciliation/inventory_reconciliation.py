@@ -34,6 +34,9 @@ class InventoryReconciliation(StockReconciliation):
 		items = [(row.item_code, row.warehouse) for row in self.items]
 		bin_items = get_bin_items()
 
+		if self.applicable_warehouse:
+			bin_items = [item for item in bin_items if item.warehouse == self.applicable_warehouse]
+
 		for item in bin_items:
 			if (item.item_code, item.warehouse) not in items:
 				item.update({'qty': 0})
