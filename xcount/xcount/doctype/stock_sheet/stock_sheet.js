@@ -160,6 +160,7 @@ frappe.ui.form.on('Stock Sheet', {
 				},
 				callback: function(r) {
 					frappe.model.set_value(cdt, cdn, "expected_qty", r.message.qty);
+					frappe.model.set_value(cdt, cdn, "valuation_rate", r.message.rate);
 				}
 			});
 		}

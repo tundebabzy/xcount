@@ -31,6 +31,7 @@ def make_stock_reconciliation(source_name, target_doc=None, ignore_permisions=Fa
 					'item_code': 'item_code',
 					'item_name': 'item_name',
 					'qty': 'qty',
+					'valuation_rate': 'valuation_rate',
 					'warehouse': 'warehouse'
 				}
 			}
