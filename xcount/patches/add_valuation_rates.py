@@ -2,6 +2,7 @@ import frappe
 from erpnext.stock.doctype.stock_reconciliation.stock_reconciliation import get_stock_balance_for
 
 def execute():
+    frappe.reload_doc('xcount', 'doctype', 'inventory_reconciliation')
     data = frappe.db.sql(
         'select a.name, a.item_code, a.warehouse, b.stock_count_date, '
         'b.stock_count_time from `tabStock Sheet Item` a join '
