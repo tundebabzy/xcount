@@ -1,3 +1,4 @@
+# Compatible with ERPNext v10.
 ## XCount
 
 XCount is an inventory reconciliation app for ERPNext which makes ERPNext easy to use when dealing with large inventory
