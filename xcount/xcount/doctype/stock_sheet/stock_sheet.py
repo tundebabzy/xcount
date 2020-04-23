@@ -39,6 +39,12 @@ def make_stock_reconciliation(source_name, target_doc=None, ignore_permisions=Fa
 		target_doc
 	)
 
-	doc.append('stock_sheets', {'stock_sheet_name': source_name})
+	doc.append(
+		'stock_sheets', 
+		{
+			'stock_sheet_name': source_name,
+			'warehouse': frappe.get_value('Stock Sheet', source_name, 'default_warehouse')
+		}
+	)
 
 	return doc
