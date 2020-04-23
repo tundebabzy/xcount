@@ -57,17 +57,21 @@ frappe.ui.form.on('Inventory Reconciliation', {
 	},
 
 	get_stock_count_sheets: function(frm) {
+		const filters = {
+			docstatus: 1,
+			reconciled: 0,
+			company: frm.doc.company
+		};
+		if (frm.doc.applicable_warehouse) {
+			filters.default_warehouse = frm.doc.applicable_warehouse
+		}
 		erpnext.utils.map_current_doc({
 			method: 'xcount.xcount.doctype.stock_sheet.stock_sheet.make_stock_reconciliation',
 			source_doctype: "Stock Sheet",
 			target: me.frm,
 			date_field: 'stock_count_date',
 			setters: {},
-			get_query_filters: {
-				docstatus: 1,
-				reconciled: 0,
-				company: me.frm.doc.company
-			}
+			get_query_filters: filters
 		})
 	},
 
@@ -100,12 +104,14 @@ frappe.ui.form.on('Inventory Reconciliation', {
 		if (frm.doc.applicable_warehouse) {
 			const {applicable_warehouse, items} = frm.doc;
 			frm.clear_table('items');
-			items.forEach(item => {
-				if (item.warehouse === applicable_warehouse) {
-					const d = frm.add_child('items');
-					$.extend(d, item);
-				}
-			});
+			if (items) {
+				items.forEach(item => {
+					if (item.warehouse === applicable_warehouse) {
+						const d = frm.add_child('items');
+						$.extend(d, item);
+					}
+				});
+			}
 		}
 	},
 
@@ -113,12 +119,14 @@ frappe.ui.form.on('Inventory Reconciliation', {
 		if (frm.doc.applicable_warehouse) {
 			const {applicable_warehouse, stock_sheets} = frm.doc;
 			frm.clear_table('stock_sheets');
-			stock_sheets.forEach(item => {
-				if (item.warehouse === applicable_warehouse) {
-					const d = frm.add_child('stock_sheets');
-					$.extend(d, item);
-				}
-			});
+			if (stock_sheets) {
+				stock_sheets.forEach(item => {
+					if (item.warehouse === applicable_warehouse) {
+						const d = frm.add_child('stock_sheets');
+						$.extend(d, item);
+					}
+				});
+			}
 		}
 	},
 
