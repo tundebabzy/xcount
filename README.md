@@ -1,4 +1,3 @@
-# Compatible with ERPNext v10.
 ## XCount
 
 XCount is an inventory reconciliation app for ERPNext which makes ERPNext easy to use when dealing with large inventory
@@ -18,6 +17,10 @@ It's simple to use:
 - You can use as many stock sheets as you like. You can add the same item as many item times as you need in a Stock 
 Sheet
 - Inventory Reconciliation consolidates all the imported Stock Sheets and does the ledger postings for you
+
+### Compatibility
+- ERPNext (V11)
+- Python 2
 
 
 #### License
