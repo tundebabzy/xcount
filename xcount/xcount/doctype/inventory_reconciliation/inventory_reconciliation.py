@@ -10,6 +10,7 @@ from xcount.xcount.doctype.inventory_reconciliation.utils import make_sl_entries
 from erpnext.stock.doctype.stock_reconciliation.stock_reconciliation import StockReconciliation
 from frappe import throw, _, _dict, db, msgprint, get_doc, get_list
 from frappe.utils import flt
+import six
 
 
 def get_bin_items():
@@ -44,7 +45,23 @@ class InventoryReconciliation(StockReconciliation):
 
 	def before_save(self):
 		if self.treat_as_zero:
+			self.reset_items_from_stock_sheets
 			self.add_uncounted_items_as_zero()
+
+	def reset_items_from_stock_sheets(self):
+		self.items = []
+		for stock_sheet in self.stock_sheets:
+			d = frappe.get_doc('Stock Sheet', stock_sheet.name)
+			if d.docstatus == 1:
+				self.append('items', {
+					'barcode': d.barcode,
+					'item_code': d.item_code,
+					'item_name': d.item_name,
+					'qty': d.qty,
+					'valuation_rate': d.valuation_rate,
+					'warehouse': d.warehouse
+				})
+
 
 	def validate(self):
 		self.consolidate_stock_sheet_items()
@@ -189,6 +206,6 @@ def _consolidate(document_list):
 
 			chosen_doc.set('qty', flt(chosen_doc.qty) + flt(doc.qty))
 
-	result = list(cache.itervalues()) or []
+	result = list(six.itervalues(cache)) or []
 
 	return result

@@ -47,11 +47,13 @@ frappe.ui.form.on('Inventory Reconciliation', {
 	// 	}
 	// },
 	applicable_warehouse: function(frm) {
-		frm.events.reset_items_table(frm);
-		frm.events.reset_stock_sheets_table(frm);
-		if (!frm.doc.items.length) {
-			frm.add_child('items');
-		}
+		frm.clear_table('items');
+		frm.clear_table('stock_sheets');
+		// frm.events.reset_items_table(frm);
+		// frm.events.reset_stock_sheets_table(frm);
+		// if (!frm.doc.items.length) {
+		// 	frm.add_child('items');
+		// }
 		frm.refresh_field('items');
 		frm.refresh_field('stock_sheets');
 	},
@@ -107,8 +109,7 @@ frappe.ui.form.on('Inventory Reconciliation', {
 			if (items) {
 				items.forEach(item => {
 					if (item.warehouse === applicable_warehouse) {
-						const d = frm.add_child('items');
-						$.extend(d, item);
+						const d = frm.add_child('items', item);
 					}
 				});
 			}
