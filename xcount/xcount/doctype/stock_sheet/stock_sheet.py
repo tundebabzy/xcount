@@ -46,7 +46,7 @@ def make_stock_reconciliation(source_name, target_doc=None, ignore_permisions=Fa
 	if doc.get('stock_sheets'):
 		for item in doc.stock_sheets:
 			if (item.stock_sheet_name == source_name):
-				frappe.throw('Stock Sheet - {0} has already been imported. Please ensure the items imported match your stock sheets'.format(source_name))
+				frappe.throw('Stock Sheet - {0} has already been imported.'.format(source_name))
 
 	doc.append(
 		'stock_sheets', 
