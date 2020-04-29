@@ -14,7 +14,7 @@ import six
 
 
 def get_bin_items():
-	return get_list("Bin", fields=["item_code", "warehouse", "valuation_rate"])
+	return get_list("Bin", fields=["name", "item_code", "warehouse", "valuation_rate"])
 
 
 class InventoryReconciliation(StockReconciliation):
@@ -34,10 +34,10 @@ class InventoryReconciliation(StockReconciliation):
 	def add_uncounted_items_as_zero(self):
 		items = [(row.item_code, row.warehouse) for row in self.items]
 		bin_items = get_bin_items()
+		disabled_items = get_list('Item', filters={'disabled': 1}, fields=['item_code'])
 
 		if self.applicable_warehouse:
-			bin_items = [item for item in bin_items if item.warehouse == self.applicable_warehouse]
-
+			bin_items = [item for item in bin_items if (item.warehouse == self.applicable_warehouse and {'item_code': item.item_code} not in disabled_items)]
 		for item in bin_items:
 			if (item.item_code, item.warehouse) not in items:
 				item.update({'qty': 0})
