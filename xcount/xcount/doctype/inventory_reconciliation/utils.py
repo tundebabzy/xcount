@@ -13,7 +13,7 @@ import json
 
 from erpnext.stock.doctype.bin.bin import Bin
 from erpnext.stock.doctype.stock_ledger_entry.stock_ledger_entry import StockLedgerEntry
-from erpnext.stock.stock_ledger import update_entries_after, delete_cancelled_entry, set_as_cancel
+from erpnext.stock.stock_ledger import update_entries_after, set_as_cancel
 from erpnext.stock.utils import get_bin
 from frappe import get_doc, throw, _, msgprint, db
 from frappe.utils import cint, flt, nowdate
@@ -106,40 +106,80 @@ def update_stock_(self, args, allow_negative_stock=False, via_landed_cost_vouche
 		}, allow_negative_stock=allow_negative_stock, via_landed_cost_voucher=via_landed_cost_voucher)
 
 
-def make_sl_entries(valid_voucher_type, sl_entries, is_amended=None,
+try:
+	from erpnext.stock.stock_ledger import delete_cancelled_entry
+	def make_sl_entries(valid_voucher_type, sl_entries, is_amended=None,
 					allow_negative_stock=False, via_landed_cost_voucher=False):
-	"""
-	This makes `Stock Ledger Entry`s
-	:param sl_entries: List of frappe._dict representing a `Stock Entry`
-	:param valid_voucher_type: Doctype that is valid when making the `Stock Ledger Entry`
-	:param is_amended:
-	:param allow_negative_stock:
-	:param via_landed_cost_voucher:
-	"""
-	if sl_entries:
-		cancel = True if sl_entries[0].get("is_cancelled") == "Yes" else False
-		if cancel:
-			set_as_cancel(sl_entries[0].get('voucher_no'), sl_entries[0].get('voucher_type'))
+		"""
+		This makes `Stock Ledger Entry`s
+		:param sl_entries: List of frappe._dict representing a `Stock Entry`
+		:param valid_voucher_type: Doctype that is valid when making the `Stock Ledger Entry`
+		:param is_amended:
+		:param allow_negative_stock:
+		:param via_landed_cost_voucher:
+		"""
+		if sl_entries:
+			cancel = True if sl_entries[0].get("is_cancelled") == "Yes" else False
+			if cancel:
+				set_as_cancel(sl_entries[0].get('voucher_no'), sl_entries[0].get('voucher_type'))
 
-		for sle in sl_entries:
-			sle_id = None
-			if sle.get('is_cancelled') == 'Yes':
-				sle['actual_qty'] = -flt(sle['actual_qty'])
+			for sle in sl_entries:
+				sle_id = None
+				if sle.get('is_cancelled') == 'Yes':
+					sle['actual_qty'] = -flt(sle['actual_qty'])
 
-			if sle.get("actual_qty") or sle.get("voucher_type") == valid_voucher_type:
-				sle_id = make_entry(sle, allow_negative_stock, via_landed_cost_voucher)
+				if sle.get("actual_qty") or sle.get("voucher_type") == valid_voucher_type:
+					sle_id = make_entry(sle, allow_negative_stock, via_landed_cost_voucher)
 
-			args = sle.copy()
-			args.update({
-				"sle_id": sle_id,
-				"is_amended": is_amended
-			})
+				args = sle.copy()
+				args.update({
+					"sle_id": sle_id,
+					"is_amended": is_amended
+				})
 
-			update_bin(args, allow_negative_stock, via_landed_cost_voucher)
+				update_bin(args, allow_negative_stock, via_landed_cost_voucher)
 
-		if cancel:
-			delete_cancelled_entry(sl_entries[0].get('voucher_type'), sl_entries[0].get('voucher_no'))
+			if cancel:
+				delete_cancelled_entry(sl_entries[0].get('voucher_type'), sl_entries[0].get('voucher_no'))
 
+except ImportError as e:
+	# This eill be version 13
+	def make_sl_entries(sl_entries, allow_negative_stock=False, via_landed_cost_voucher=False):
+		if sl_entries:
+			from erpnext.stock.utils import update_bin
+
+			cancel = sl_entries[0].get("is_cancelled")
+			if cancel:
+				set_as_cancel(sl_entries[0].get('voucher_type'), sl_entries[0].get('voucher_no'))
+
+			for sle in sl_entries:
+				sle_id = None
+				if via_landed_cost_voucher or cancel:
+					sle['posting_date'] = now_datetime().strftime('%Y-%m-%d')
+					sle['posting_time'] = now_datetime().strftime('%H:%M:%S.%f')
+
+					if cancel:
+						sle['actual_qty'] = -flt(sle.get('actual_qty'), 0)
+
+						if sle['actual_qty'] < 0 and not sle.get('outgoing_rate'):
+							sle['outgoing_rate'] = get_incoming_outgoing_rate_for_cancel(sle.item_code,
+								sle.voucher_type, sle.voucher_no, sle.voucher_detail_no)
+							sle['incoming_rate'] = 0.0
+
+						if sle['actual_qty'] > 0 and not sle.get('incoming_rate'):
+							sle['incoming_rate'] = get_incoming_outgoing_rate_for_cancel(sle.item_code,
+								sle.voucher_type, sle.voucher_no, sle.voucher_detail_no)
+							sle['outgoing_rate'] = 0.0
+
+
+				if sle.get("actual_qty") or sle.get("voucher_type")=="Stock Reconciliation":
+					sle_id = make_entry(sle, allow_negative_stock, via_landed_cost_voucher)
+
+				args = sle.copy()
+				args.update({
+					"sle_id": sle_id
+				})
+				update_bin(args, allow_negative_stock, via_landed_cost_voucher)
 
 def make_entry(args, allow_negative_stock=False, via_landed_cost_voucher=False):
 	"""
