@@ -97,7 +97,12 @@ class InventoryReconciliation(StockReconciliation):
 
 		It makes use of a new `make_sl_entries` method that is not tied to any specific doctype
 		"""
-		make_sl_entries(self.doctype, sl_entries, is_amended, allow_negative_stock, via_landed_cost_voucher)
+		try:
+			# <= v12
+			make_sl_entries(self.doctype, sl_entries, is_amended, allow_negative_stock, via_landed_cost_voucher)
+		except TypeError:
+			# v13
+			make_sl_entries(sl_entries=sl_entries, allow_negative_stock=allow_negative_stock, via_landed_cost_voucher=via_landed_cost_voucher)
 
 	def get_voucher_details(self, default_expense_account, default_cost_center, sle_map):
 		if self.doctype == "Inventory Reconciliation":
